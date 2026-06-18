@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>展覽現場資料蒐集與採購媒合平台 | 展示会情報収集・調達支援システム</title>
+<style>
+  :root{
+    --cherry:#990011; --cherry2:#b71c1c; --navy:#2f3c7e; --gold:#caa54a;
+    --ink:#222; --mute:#777; --line:#e6e0de; --bg:#faf6f5; --card:#fff;
+    --ok:#1f8a4c; --no:#b03030; --cond:#b8860b;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,"PingFang TC","Microsoft JhengHei","Hiragino Sans",sans-serif;
+    color:var(--ink);background:var(--bg);line-height:1.6}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+  /* top bar */
+  header{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:50}
+  .bar{display:flex;align-items:center;justify-content:space-between;height:60px}
+  .logo{font-weight:800;font-size:17px;color:var(--cherry)}
+  .logo small{display:block;font-size:11px;color:var(--mute);font-weight:400}
+  .rolepill{font-size:12px;padding:5px 12px;border-radius:20px;background:#f2dede;color:var(--cherry);font-weight:700}
+  .backbtn{font-size:13px;color:var(--mute);cursor:pointer;border:1px solid var(--line);padding:6px 12px;border-radius:8px;background:#fff}
+  .backbtn:hover{background:#f6f2f1}
+  /* hero / landing */
+  .hero{padding:48px 0 24px;text-align:center}
+  .hero h1{font-size:28px;color:var(--cherry);margin-bottom:6px}
+  .hero .sub{color:var(--mute);font-size:14px;margin-bottom:4px}
+  .exh{display:inline-block;margin:14px auto 0;background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 20px;font-size:13px}
+  .exh b{color:var(--navy)}
+  .grid4{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;margin:30px 0 50px}
+  .entry{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:26px 24px;cursor:pointer;
+    transition:.15s;border-top:5px solid var(--cherry);position:relative;overflow:hidden}
+  .entry:hover{transform:translateY(-3px);box-shadow:0 10px 26px rgba(0,0,0,.10)}
+  .entry .ic{font-size:34px;margin-bottom:8px}
+  .entry h3{font-size:19px;margin-bottom:3px}
+  .entry .ja{font-size:13px;color:var(--navy);margin-bottom:10px}
+  .entry p{font-size:13px;color:var(--mute)}
+  .entry.n1{border-top-color:#2f7ea0}
+  .entry.n2{border-top-color:var(--cherry)}
+  .entry.n3{border-top-color:#3a9d6a}
+  .entry.n4{border-top-color:var(--navy)}
+  .tag{display:inline-block;font-size:11px;padding:2px 9px;border-radius:10px;background:#f2eae8;color:var(--mute);margin-top:12px}
+  /* sections */
+  .view{display:none}
+  .view.active{display:block;animation:fade .25s}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .portalhead{padding:26px 0 10px}
+  .portalhead h2{font-size:23px}
+  .portalhead .desc{font-size:13.5px;color:var(--mute);margin-top:8px;max-width:760px}
+  .langnote{font-size:12px;color:var(--gold);font-weight:700;margin-top:6px}
+  /* cards & tables */
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;margin:16px 0}
+  .card h4{font-size:16px;color:var(--cherry);margin-bottom:12px;border-bottom:2px solid #f2dede;padding-bottom:7px}
+  .navy h4{color:var(--navy);border-bottom-color:#dde0ef}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#f6efee;font-weight:700}
+  .yes{color:var(--ok);font-weight:700}.non{color:var(--no)}.cnd{color:var(--cond)}
+  .plist{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+  .pcard{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff}
+  .pcard .ph{height:96px;display:flex;align-items:center;justify-content:center;font-size:46px;background:#f7f1f0}
+  .pcard .pb{padding:12px}
+  .pcard h5{font-size:14px;margin-bottom:4px}
+  .pcard .meta{font-size:12px;color:var(--mute)}
+  .pcard .price{color:var(--cherry);font-weight:700;font-size:13px;margin-top:6px}
+  .stars{color:var(--gold);font-size:13px}
+  .pill{display:inline-block;font-size:11px;padding:2px 8px;border-radius:8px;margin:2px 3px 0 0}
+  .pill.tw{background:#e2f0e6;color:#1f8a4c}.pill.cn{background:#fde8e8;color:#b03030}
+  .pill.warn{background:#fff3d6;color:#b8860b}.pill.lv{background:#eef0fb;color:var(--navy)}
+  .formrow{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:10px}
+  .formrow label{flex:1 1 220px;font-size:13px}
+  .formrow label span{display:block;color:var(--mute);font-size:12px;margin-bottom:3px}
+  .formrow input,.formrow textarea,.formrow select{width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font-size:13px;font-family:inherit}
+  .btn{display:inline-block;background:var(--cherry);color:#fff;border:none;padding:9px 18px;border-radius:9px;font-size:14px;cursor:pointer;font-weight:700}
+  .btn.navy{background:var(--navy)}.btn.ghost{background:#fff;color:var(--cherry);border:1px solid var(--cherry)}
+  .lvbar{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+  .lvtag{font-size:12px;padding:5px 12px;border-radius:9px;font-weight:700}
+  .lv1{background:#e2f0e6;color:#1f8a4c}.lv2{background:#eef0fb;color:var(--navy)}
+  .lv3{background:#f2dede;color:var(--cherry)}.lv4{background:#fff3d6;color:#b8860b}
+  .crumbs{font-size:12px;color:var(--mute);margin:14px 0 4px}
+  .crumbs span{color:var(--cherry)}
+  .selrow{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:10px 0}
+  .selrow select{padding:8px;border:1px solid var(--line);border-radius:8px;font-size:13px}
+  .note{background:#fff7f7;border-left:3px solid var(--cherry);padding:8px 12px;font-size:12.5px;color:#7a5a5a;border-radius:0 8px 8px 0;margin-top:8px}
+  .adminnote{background:#f4f2fb;border-left:3px solid var(--navy);color:#4a4a6a}
+  .miniflow{font-size:13px;color:var(--mute);line-height:2}
+  .miniflow b{color:var(--ink)}
+  footer{text-align:center;color:var(--mute);font-size:12px;padding:30px 0 40px;border-top:1px solid var(--line);margin-top:30px}
+  .lock{color:var(--mute);font-size:12px;font-style:italic}
+  @media(max-width:680px){.grid4{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap bar">
+    <div class="logo">展覽現場資料蒐集與採購媒合平台
+      <small>展示会情報収集・調達支援システム / 海外展会采购资料管理系统</small></div>
+    <div id="rolebox"></div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- ============ LANDING ============ -->
+  <section id="v-home" class="view active">
+    <div class="hero">
+      <h1>請選擇您的身份入口</h1>
+      <div class="sub">QR Code / 網站入口 → 系統判斷身份 → 四種專屬入口</div>
+      <div class="sub">身份をお選びください / 请选择您的身份</div>
+      <div class="exh" id="exhInfo"></div>
+    </div>
+    <div class="grid4">
+      <div class="entry n1" onclick="go('exhibitor')">
+        <div class="ic">🏭</div><h3>展覽廠商 / 出展企業</h3>
+        <div class="ja">出展企業アカウント</div>
+        <p>日本展場廠商。掃碼後上傳並建立自己的公司與商品商務資料。</p>
+        <span class="tag">主要語言:日文</span>
+      </div>
+      <div class="entry n2" onclick="go('buyer')">
+        <div class="ic">📋</div><h3>委託帶採購廠商</h3>
+        <div class="ja">調達依頼企業 / 海外バイヤーアカウント</div>
+        <p>最重要的 B2B 客戶。查看管理者整理後、授權開放的採購資料。</p>
+        <span class="tag">主要語言:繁中／簡中</span>
+      </div>
+      <div class="entry n3" onclick="go('consumer')">
+        <div class="ic">🛍️</div><h3>傳統消費者</h3>
+        <div class="ja">一般消費者アカウント</div>
+        <p>一般消費者與社群粉絲。看到簡化、公開的商品展示與導購資訊。</p>
+        <span class="tag">主要語言:繁中／簡中／日文</span>
+      </div>
+      <div class="entry n4" onclick="go('admin')">
+        <div class="ic">🛠️</div><h3>管理人後臺</h3>
+        <div class="ja">管理者アカウント</div>
+        <p>最高權限。建立展覽、審核資料、補充現場資訊、控制誰能看到什麼。</p>
+        <span class="tag">主要語言:繁中</span>
+      </div>
+    </div>
+    <div class="card">
+      <h4>四級資料可見層級</h4>
+      <div class="lvbar">
+        <span class="lvtag lv1">L1 公開資料 — 消費者</span>
+        <span class="lvtag lv2">L2 B2B採購資料 — 委託採購商</span>
+        <span class="lvtag lv3">L3 管理者內部資料 — 僅管理人</span>
+        <span class="lvtag lv4">L4 指定客戶專屬 — 特定採購商</span>
+      </div>
+      <p style="font-size:13px;color:var(--mute)">同一筆商品資料分三種版本輸出:<b>展商原始版</b>(管理人)、<b>B2B採購版</b>(委託採購商)、<b>消費者展示版</b>(一般消費者)。管理人控制每一層的開放對象。</p>
+    </div>
+  </section>
+
+  <!-- ============ 1. EXHIBITOR ============ -->
+  <section id="v-exhibitor" class="view">
+    <div class="crumbs"><span onclick="go('home')" style="cursor:pointer">首頁</span> / 展覽廠商入口</div>
+    <div class="portalhead">
+      <h2>🏭 出展企業アカウント|展覽廠商入口</h2>
+      <div class="langnote">主要言語:日本語</div>
+      <div class="desc">私たちは台湾および中国大陸の企業から依頼を受け、展示会における製品・商務資料を収集しております。貴社の商品情報、会社資料、カタログ、価格表、輸出条件などをご登録ください。<br>
+      <span style="color:#aaa">(我們受台灣與中國大陸企業委託,於展覽現場蒐集商品與商務資料。請貴公司登錄商品資訊、公司資料、型錄、價格表與出口條件。)</span></div>
+    </div>
+    <div class="card navy">
+      <h4>① 会社基本情報の登録 / 公司基本資料</h4>
+      <div class="formrow">
+        <label><span>会社名 / 公司名稱</span><input placeholder="例:静岡茶園株式会社"></label>
+        <label><span>ブース番号 / 攤位</span><input placeholder="E-12"></label>
+      </div>
+      <div class="formrow">
+        <label><span>担当者・連絡先 / 聯絡窗口</span><input placeholder="輸出部 山田 / export@..."></label>
+        <label><span>カテゴリ / 品類</span><input placeholder="飲料・茶"></label>
+      </div>
+      <div class="formrow"><label><span>会社紹介 / 公司簡介</span><textarea rows="2" placeholder="創業120年..."></textarea></label></div>
+    </div>
+    <div class="card navy">
+      <h4>② 商品情報の登録 / 商品資料</h4>
+      <div class="formrow">
+        <label><span>商品名 / 商品名稱</span><input placeholder="特上 有機抹茶 100g"></label>
+        <label><span>MOQ / 最低訂購量</span><input placeholder="100罐"></label>
+      </div>
+      <div class="formrow">
+        <label><span>卸売価格 / 批發價</span><input placeholder="¥1,180/罐(未稅)"></label>
+        <label><span>サンプル条件 / 樣品條件</span><input placeholder="3罐,運費買方負擔"></label>
+      </div>
+      <div class="formrow">
+        <label><span>輸出条件 / 出口條件</span><input placeholder="台灣/中國大陸,需冷藏物流"></label>
+        <label><span>OEM / ODM 条件</span><input placeholder="OEM貼牌,MOQ 500罐起"></label>
+      </div>
+      <div class="formrow">
+        <label><span>📄 カタログ / 型錄</span><input type="file"></label>
+        <label><span>📄 価格表 / 價格表</span><input type="file"></label>
+      </div>
+      <div class="formrow">
+        <label><span>🖼️ 商品写真 / 商品照片</span><input type="file" multiple></label>
+        <label><span>🎬 商品動画 / 商品影片</span><input type="file"></label>
+      </div>
+      <button class="btn navy">提出する / 提交資料</button>
+      <button class="btn ghost" style="margin-left:8px">自分の資料を修正 / 修改我的資料</button>
+    </div>
+    <div class="card">
+      <h4>🔒 アクセス制限 / 您看不到的內容</h4>
+      <p class="lock">・他の出展企業の資料 ・調達依頼企業(バイヤー)の名簿 ・管理者の内部メモ ・商品評価 ・お客様のお気に入りや問い合わせ記録</p>
+      <p class="lock" style="color:#aaa">(看不到:其他展商資料、委託採購廠商名單、管理者內部備註、商品評分、客戶收藏與詢問紀錄)</p>
+    </div>
+  </section>
+
+  <!-- ============ 2. BUYER ============ -->
+  <section id="v-buyer" class="view">
+    <div class="crumbs"><span onclick="go('home')" style="cursor:pointer">首頁</span> / 委託帶採購廠商入口</div>
+    <div class="portalhead">
+      <h2>📋 調達依頼企業|委託帶採購廠商入口</h2>
+      <div class="langnote">主要語言:繁體中文／簡體中文</div>
+      <div class="desc">這裡是 <b>B2B 採購資料庫</b>,不是一般商品展示網站。您看到的是管理者整理後、授權開放給您的專案資料。</div>
+    </div>
+    <div class="selrow">
+      <b>我的委託專案:</b>
+      <select id="buyerSel" onchange="renderBuyer()"></select>
+      <span style="font-size:12px;color:var(--mute)" id="buyerFocus"></span>
+    </div>
+    <div class="crumbs" id="buyerCrumb"></div>
+    <div id="buyerProducts" class="plist"></div>
+    <div class="card" style="margin-top:18px">
+      <h4>🔒 您看不到的內容</h4>
+      <p class="lock">・無法直接修改展商原始資料 ・其他委託採購廠商的資料 ・管理者未審核的資料 ・其他客戶的收藏與詢價 ・未被授權的展覽專案</p>
+    </div>
+  </section>
+
+  <!-- ============ 3. CONSUMER ============ -->
+  <section id="v-consumer" class="view">
+    <div class="crumbs"><span onclick="go('home')" style="cursor:pointer">首頁</span> / 傳統消費者入口</div>
+    <div class="portalhead">
+      <h2>🛍️ 一般消費者|日本精選商品</h2>
+      <div class="langnote">主要語言:繁中／簡中／日文</div>
+      <div class="desc">嚴選日本好物,看商品特色、品牌故事與使用方式。<span style="color:#aaa">(不顯示批發價、MOQ、代理與 OEM 等商務條件)</span></div>
+    </div>
+    <div id="consumerProducts" class="plist"></div>
+    <div class="card" style="margin-top:18px">
+      <h4>🔒 不顯示的內容</h4>
+      <p class="lock">・批發價 ・MOQ ・代理條件 ・OEM/ODM 條件 ・商務價格表 ・展商完整商務聯絡 ・管理者內部評估 ・委託採購廠商專區</p>
+    </div>
+  </section>
+
+  <!-- ============ 4. ADMIN ============ -->
+  <section id="v-admin" class="view">
+    <div class="crumbs"><span onclick="go('home')" style="cursor:pointer">首頁</span> / 管理者後臺</div>
+    <div class="portalhead">
+      <h2>🛠️ 管理者アカウント|管理者後臺</h2>
+      <div class="langnote">主要語言:繁體中文</div>
+      <div class="desc">最高權限。最重要的職責是控制「<b>誰可以看到什麼</b>」。</div>
+    </div>
+    <div class="card">
+      <h4>展覽專案管理</h4>
+      <div id="adminExh"></div>
+      <div style="margin-top:10px">
+        <button class="btn">＋ 建立展覽專案</button>
+        <button class="btn ghost" style="margin-left:6px">建立 QR Code</button>
+        <button class="btn ghost" style="margin-left:6px">匯出報告</button>
+      </div>
+    </div>
+    <div class="card">
+      <h4>展商資料審核</h4>
+      <table><thead><tr><th>展商</th><th>攤位</th><th>品類</th><th>狀態</th><th>操作</th></tr></thead>
+      <tbody id="adminExhibitors"></tbody></table>
+    </div>
+    <div class="card">
+      <h4>商品資料管理 ＋ 可見權限設定</h4>
+      <p style="font-size:12.5px;color:var(--mute);margin-bottom:8px">每筆商品 = 三種版本。勾選決定開放給誰、給哪個客戶(L4 指定客戶專屬)。</p>
+      <table><thead><tr><th>商品</th><th>推薦</th><th>L1 消費者</th><th>L2 B2B</th><th>L4 指定客戶</th><th>內部備註(L3)</th></tr></thead>
+      <tbody id="adminProducts"></tbody></table>
+    </div>
+    <div class="card">
+      <h4>現場補充 / 後續追蹤</h4>
+      <div class="miniflow">
+        <b>可補充:</b>現場照片、現場影片、流程說明、口頭報價、展商態度與合作意願、推薦程度<br>
+        <b>客戶權限:</b>建立客戶專屬查看權限 → 指定開放給 A 客戶 / B 客戶<br>
+        <b>輸出:</b>匯出報告、建立後續追蹤清單
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PERMISSION MATRIX (shared, shown on home bottom via link) ============ -->
+  <section id="v-perm" class="view">
+    <div class="crumbs"><span onclick="go('home')" style="cursor:pointer">首頁</span> / 權限架構總表</div>
+    <div class="portalhead"><h2>權限架構總表</h2></div>
+    <div class="card"><table id="permTable">
+      <thead><tr><th>功能 / 資料</th><th>展覽廠商</th><th>委託帶採購廠商</th><th>傳統消費者</th><th>管理人</th></tr></thead>
+      <tbody></tbody></table></div>
+  </section>
+
+</div>
+
+<footer>
+  展覽現場資料蒐集與採購媒合平台 ・ 展示会情報収集・調達支援システム ・ 海外展会采购资料管理系统<br>
+  <span onclick="go('perm')" style="cursor:pointer;color:var(--cherry)">▸ 查看權限架構總表</span>　|　原型 Demo・資料為範例
+</footer>
+
+<script src="data.js"></script>
+<script>
+const VIEWS=['home','exhibitor','buyer','consumer','admin','perm'];
+const ROLE_LABEL={exhibitor:'展覽廠商',buyer:'委託採購廠商',consumer:'一般消費者',admin:'管理人'};
+function go(v){
+  VIEWS.forEach(x=>document.getElementById('v-'+x).classList.toggle('active',x===v));
+  window.scrollTo(0,0);
+  const rb=document.getElementById('rolebox');
+  if(v==='home'){rb.innerHTML='';}
+  else if(ROLE_LABEL[v]){rb.innerHTML=`<span class="rolepill">目前身份:${ROLE_LABEL[v]}</span> <span class="backbtn" onclick="go('home')">切換身份</span>`;}
+  else {rb.innerHTML=`<span class="backbtn" onclick="go('home')">返回首頁</span>`;}
+  location.hash=v;
+}
+function stars(n){return '★'.repeat(n)+'☆'.repeat(5-n);}
+
+// exhibition info
+const ex=DB.exhibitions[0];
+document.getElementById('exhInfo').innerHTML=
+  '<b>'+ex.name_zh+'</b><br>'+ex.date+' ｜ '+ex.venue_zh+' ｜ 主辦 '+ex.organizer+' ｜ '+ex.scale_zh;
+
+// ---- BUYER ----
+const bsel=document.getElementById('buyerSel');
+DB.buyers.forEach(b=>{let o=document.createElement('option');o.value=b.id;o.textContent=b.name;bsel.appendChild(o);});
+function renderBuyer(){
+  const b=DB.buyers.find(x=>x.id===bsel.value);
+  document.getElementById('buyerFocus').textContent='委託品類:'+b.focus+'｜目標市場:'+b.market;
+  document.getElementById('buyerCrumb').innerHTML='我的委託專案 / <span>'+ex.name_zh.split('—')[0]+'</span> / 授權商品('+b.grants.length+')';
+  const box=document.getElementById('buyerProducts');box.innerHTML='';
+  b.grants.forEach(pid=>{
+    const p=DB.products.find(x=>x.id===pid);if(!p)return;
+    const eo=DB.exhibitors.find(x=>x.id===p.exhibitorId);
+    const c=p.consumer,d=p.b2b;
+    box.innerHTML+=`<div class="pcard">
+      <div class="ph">${c.image}</div>
+      <div class="pb">
+        <h5>${p.name_zh}</h5>
+        <div class="meta">${eo.name_zh}｜攤位 ${eo.booth}</div>
+        <div class="stars">${stars(d.recommend)}</div>
+        <div style="font-size:12px;margin-top:6px">
+          <div>MOQ:<b>${d.moq}</b></div>
+          <div>批發:<b style="color:var(--cherry)">${d.wholesale_zh}</b></div>
+          <div>出口:${d.export_zh}</div>
+          <div>OEM:${d.oem_zh}</div>
+          <div>樣品:${d.sample_zh}</div>
+        </div>
+        <div style="margin-top:6px">
+          ${d.fit_tw?'<span class="pill tw">適合台灣</span>':''}
+          ${d.fit_cn?'<span class="pill cn">適合中國大陸</span>':''}
+          ${d.follow?'<span class="pill lv">建議後續聯繫</span>':''}
+        </div>
+        <div style="margin-top:6px;font-size:12px">📄 <a style="color:var(--navy)">${d.catalog}</a>　📄 <a style="color:var(--navy)">${d.pricelist}</a></div>
+        <div class="note">管理者備註:${d.admin_note_zh}</div>
+        <div style="margin-top:8px"><button class="btn" style="padding:5px 12px;font-size:12px">★ 收藏</button>
+        <button class="btn ghost" style="padding:5px 12px;font-size:12px;margin-left:4px">提出採購需求</button></div>
+      </div></div>`;
+  });
+}
+renderBuyer();
+
+// ---- CONSUMER ----
+const cbox=document.getElementById('consumerProducts');
+DB.products.forEach(p=>{
+  const c=p.consumer;
+  cbox.innerHTML+=`<div class="pcard">
+    <div class="ph">${c.image}</div>
+    <div class="pb">
+      <h5>${p.name_zh}</h5>
+      <div class="meta">${c.origin_zh}</div>
+      <div style="font-size:12px;margin-top:6px">${c.brand_story_zh}</div>
+      <div style="font-size:12px;margin-top:4px;color:var(--mute)">特色:${c.feature_zh}</div>
+      <div style="font-size:12px;margin-top:2px;color:var(--mute)">用法:${c.usage_zh}</div>
+      <div class="price">${c.public_price_zh}</div>
+      <div style="margin-top:8px"><button class="btn" style="padding:5px 12px;font-size:12px">🛒 ${c.buy_zh}</button>
+      <button class="btn ghost" style="padding:5px 12px;font-size:12px;margin-left:4px">★ 收藏</button></div>
+    </div></div>`;
+});
+
+// ---- ADMIN ----
+document.getElementById('adminExh').innerHTML=
+  '<table><thead><tr><th>展覽</th><th>日期</th><th>地點</th><th>狀態</th></tr></thead><tbody><tr><td>'+
+  ex.name_zh+'</td><td>'+ex.date+'</td><td>'+ex.venue_zh+'</td><td><span class="yes">'+ex.status+'</span></td></tr></tbody></table>';
+const ab=document.getElementById('adminExhibitors');
+DB.exhibitors.forEach(e=>{
+  ab.innerHTML+='<tr><td>'+e.name_zh+'<br><small style="color:#999">'+e.name_ja+'</small></td><td>'+e.booth+'</td><td>'+e.category+'</td><td>'+
+    (e.reviewed?'<span class="yes">已審核</span>':'<span class="cnd">待審核</span>')+
+    '</td><td><button class="btn ghost" style="padding:4px 10px;font-size:12px">'+(e.reviewed?'檢視':'審核')+'</button></td></tr>';
+});
+const ap=document.getElementById('adminProducts');
+DB.products.forEach(p=>{
+  const d=p.b2b,a=p.admin;
+  const grantedBuyers=DB.buyers.filter(b=>b.grants.includes(p.id)).map(b=>b.id).join(', ');
+  ap.innerHTML+='<tr><td>'+p.name_zh+(d.unreviewed?' <span class="pill warn">未審核</span>':'')+'</td>'+
+    '<td class="stars">'+stars(d.recommend)+'</td>'+
+    '<td><span class="yes">☑ 開放</span></td>'+
+    '<td>'+(d.unreviewed?'<span class="non">☐ 未開放</span>':'<span class="yes">☑ 開放</span>')+'</td>'+
+    '<td><span class="pill lv">'+(grantedBuyers||'—')+'</span></td>'+
+    '<td style="font-size:12px"><div class="note adminnote">口頭:'+a.verbal_quote_zh+'｜態度:'+a.attitude_zh+'｜風險:'+a.risk_zh+'<br>有興趣客戶:'+a.interested_buyers.join(', ')+'</div></td></tr>';
+});
+
+// ---- PERMISSION TABLE ----
+const pt=document.querySelector('#permTable tbody');
+function cell(v){
+  if(v==='可')return '<td class="yes">可</td>';
+  if(v==='不可')return '<td class="non">不可</td>';
+  if(v==='不需要')return '<td class="lock">不需要</td>';
+  if(v.indexOf('可')===0)return '<td class="cnd">'+v+'</td>';
+  return '<td>'+v+'</td>';
+}
+DB.permissions.forEach(r=>{
+  pt.innerHTML+='<tr><td><b>'+r[0]+'</b></td>'+cell(r[1])+cell(r[2])+cell(r[3])+cell(r[4])+'</tr>';
+});
+
+// hash routing
+window.addEventListener('load',()=>{const h=location.hash.replace('#','');if(VIEWS.includes(h))go(h);});
+</script>
+</body>
+</html>
